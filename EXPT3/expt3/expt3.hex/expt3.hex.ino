@@ -1,25 +1,27 @@
+#include <LiquidCrystal.h>
 
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+// LCD using analog pins as digital
+LiquidCrystal lcd(A5, A4, A3, A2, A1, A0);
 
 int redPins[]    = {11, 8, 5, 4};
 int yellowPins[] = {12, 9, 6, 3};
 int greenPins[]  = {13, 10, 7, 2};
-Adafruit_SSD1306 display(128, 64, &Wire, -1);
+
 void setup() {
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C); 
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0,0);
-  display.println("OLED Connected");
-  display.display();
+  lcd.begin(16, 2);
+
   for (int i = 0; i < 4; i++) {
     pinMode(redPins[i], OUTPUT);
     pinMode(yellowPins[i], OUTPUT);
     pinMode(greenPins[i], OUTPUT);
   }
+
+  lcd.setCursor(0, 0);
+  lcd.print("4-Way Traffic");
+  lcd.setCursor(0, 1);
+  lcd.print("System Ready");
+  delay(2000);
+  lcd.clear();
 }
 
 void allRed() {
@@ -29,36 +31,39 @@ void allRed() {
     digitalWrite(greenPins[i], LOW);
   }
 }
+
 void greenPhase(int lane) {
   allRed();
 
-  display.clearDisplay();
-  display.setCursor(0,0);
-  display.println("Traffic Signal");
-  display.print("Lane ");
-  display.print(lane + 1);
-  display.println(" GREEN");
-  display.display();
+  // GREEN PHASE
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Traffic Signal");
+  lcd.setCursor(0, 1);
+  lcd.print("Lane ");
+  lcd.print(lane + 1);
+  lcd.print(" GREEN");
 
   digitalWrite(redPins[lane], LOW);
   digitalWrite(greenPins[lane], HIGH);
   delay(3000);
 
-  display.clearDisplay();
-  display.setCursor(0,0);
-  display.print("Lane ");
-  display.print(lane + 1);
-  display.println(" YELLOW");
-  display.display();
+  // YELLOW PHASE
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Traffic Signal");
+  lcd.setCursor(0, 1);
+  lcd.print("Lane ");
+  lcd.print(lane + 1);
+  lcd.print(" YELLOW");
 
   digitalWrite(greenPins[lane], LOW);
   digitalWrite(yellowPins[lane], HIGH);
-  delay(3000);
+  delay(2000);
 
   digitalWrite(yellowPins[lane], LOW);
   digitalWrite(redPins[lane], HIGH);
 }
-
 
 void loop() {
   for (int lane = 0; lane < 4; lane++) {
