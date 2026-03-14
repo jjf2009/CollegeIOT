@@ -6,36 +6,32 @@ int redPins[]    = {11, 8, 5, 4};
 int yellowPins[] = {12, 9, 6, 3};
 int greenPins[]  = {13, 10, 7, 2};
 
-const int greenTime = 5;   // seconds
-const int yellowTime = 3;  // seconds
+const int Time = 3;
 
 void setup() {
   lcd.begin(16, 2);
-
   for (int i = 0; i < 4; i++) {
-    pinMode(redPins[i], OUTPUT);
+    pinMode(redPins[i],    OUTPUT);
     pinMode(yellowPins[i], OUTPUT);
-    pinMode(greenPins[i], OUTPUT);
+    pinMode(greenPins[i],  OUTPUT);
   }
-
   allRed();
 }
 
 void allRed() {
   for (int i = 0; i < 4; i++) {
-    digitalWrite(redPins[i], HIGH);
+    digitalWrite(redPins[i],    HIGH);
     digitalWrite(yellowPins[i], LOW);
-    digitalWrite(greenPins[i], LOW);
+    digitalWrite(greenPins[i],  LOW);
   }
 }
 
-void displayStatus(int activeLane, char phase, int activeTimer, int stopTimer) {
+// Now accepts a per-lane stop timer array instead of one shared value
+void displayStatus(int activeLane, char phase, int activeTimer, int stopTimers[]) {
   lcd.clear();
-
   for (int i = 0; i < 4; i++) {
     int row = (i < 2) ? 0 : 1;
     int col = (i % 2) * 8;
-
     lcd.setCursor(col, row);
     lcd.print("L");
     lcd.print(i + 1);
@@ -46,35 +42,57 @@ void displayStatus(int activeLane, char phase, int activeTimer, int stopTimer) {
       lcd.print(activeTimer);
     } else {
       lcd.print("S");
-      if (stopTimer < 10) lcd.print("0");
-      lcd.print(stopTimer);
+      if (stopTimers[i] < 10) lcd.print("0");
+      lcd.print(stopTimers[i]);
     }
   }
 }
 
 void greenPhase(int lane) {
   allRed();
-
-  digitalWrite(redPins[lane], LOW);
+  digitalWrite(redPins[lane],  LOW);
   digitalWrite(greenPins[lane], HIGH);
 
-  int stopDuration = greenTime + yellowTime;
-
-  for (int t = greenTime; t > 0; t--) {
-    displayStatus(lane, 'G', t, stopDuration - (greenTime - t));
+  // GREEN phase
+  for (int t = Time; t > 0; t--) {
+    int stopTimers[4];
+    for (int i = 0; i < 4; i++) {
+      if (i == lane) {
+        stopTimers[i] = t;
+      } else {
+        // offset = how many lanes away this lane is in the queue
+        int offset = (i - lane + 4) % 4;
+        // wait = remaining green (t) + yellow of active (Time)
+        //      + full cycles of all lanes in between ((offset-1) * 2 * Time)
+        stopTimers[i] = t + Time + (offset - 1) * 2 * Time;
+      }
+    }
+    displayStatus(lane, 'G', t, stopTimers);
     delay(1000);
   }
 
-  digitalWrite(greenPins[lane], LOW);
+  digitalWrite(greenPins[lane],  LOW);
   digitalWrite(yellowPins[lane], HIGH);
 
-  for (int t = yellowTime; t > 0; t--) {
-    displayStatus(lane, 'Y', t, yellowTime - (yellowTime - t));
+  // YELLOW phase
+  for (int t = Time; t > 0; t--) {
+    int stopTimers[4];
+    for (int i = 0; i < 4; i++) {
+      if (i == lane) {
+        stopTimers[i] = t;
+      } else {
+        int offset = (i - lane + 4) % 4;
+        // wait = remaining yellow (t)
+        //      + full cycles of all lanes in between ((offset-1) * 2 * Time)
+        stopTimers[i] = t + (offset - 1) * 2 * Time;
+      }
+    }
+    displayStatus(lane, 'Y', t, stopTimers);
     delay(1000);
   }
 
   digitalWrite(yellowPins[lane], LOW);
-  digitalWrite(redPins[lane], HIGH);
+  digitalWrite(redPins[lane],    HIGH);
 }
 
 void loop() {
