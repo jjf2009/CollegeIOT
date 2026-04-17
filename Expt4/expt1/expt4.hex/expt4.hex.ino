@@ -1,4 +1,4 @@
-int ledpin=13;
+int ledpin=11;
 int potpin=A0;
 int Value;
 
