@@ -57,10 +57,6 @@ The projects are categorized into distinct modules, making it easy to find speci
 3. **Wire the Circuit:**
    Follow standard Arduino pinouts for LCDs (often via I2C), Servos, and specific sensors as indicated by the code.
 
-## 🔍 SEO & Keywords
-
-`Internet of Things`, `IoT`, `Arduino`, `Embedded Systems`, `Microcontrollers`, `C++`, `Sensors`, `Actuators`, `LCD Interfacing`, `PWM`, `Servo Control`, `Hardware`, `Engineering`, `College Lab Experiments`.
-
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](../../issues).
